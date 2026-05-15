@@ -1233,26 +1233,151 @@ write.csv(base_sim, "SIM_AL.csv", row.names = FALSE)
 # Tarefa 1. Acesso aos bancos de dados do SIDRA e obtenção da informação
 # Leia os arquivos:
 # 1. população residente estimada - UF e municípios - 2015 - SIDRA - tabela_6579.csv  
+sidra1 = read.csv("população residente estimada - UF e municípios - 2015 - SIDRA - tabela_6579.csv",
+                  sep = ";", encoding = "UTF-8")
+
 # 2. população residente censo 2010 - UF e municípios - total e por sexo - SIDRA - tabela_1552.csv  
+sidra2 = read.csv("população residente censo 2010 - UF e municípios - total e por sexo - SIDRA - tabela_1552.csv",
+                  sep = ";", encoding = "UTF-8")
+
 # 3. população residente censo 2010 - por faixa etária -  UF - SIDRA - tabela_1552.csv
+sidra3 = read.csv("população residente censo 2010 - por faixa etária -  UF - SIDRA - tabela_1552.csv",
+                  sep = ";", encoding = "UTF-8")
+
 # 4. população residente censo 2010 - por faixa etária e sexo -  municípios - SIDRA - tabela_1552.csv
+sidra4 = read.csv("população residente censo 2010 - por faixa etária e sexo -  municípios - SIDRA - tabela_1552.csv",
+                  sep = ";", encoding = "UTF-8")
+
+sidra1_AL = sidra1[substr(as.character(sidra1$CODMUNRES), 1, 2) == "27",]
+sidra2_AL = sidra2[substr(as.character(sidra2$CODMUNRES), 1, 2) == "27",]
+sidra3_AL = sidra3[substr(as.character(sidra3$CODMUNRES), 1, 2) == "27",]
+sidra4_AL = sidra4[substr(as.character(sidra4$CODMUNRES), 1, 2) == "27",]
 
 # A partir dos arquivos acima gere o banco de dados de nome SIDRA_UF com as seguintes variáveis:
 # 1  ANO    
 # 2  NIVEL
 # 3  CODMUNRES
+SIDRA_AL = data.frame(CODMUNRES = sort(unique(sidra1_AL$CODMUNRES)))
+SIDRA_AL$ANO = 2015
+SIDRA_AL$NIVEL = "MUNICIPIO"
+SIDRA_AL$NIVEL[1] = "UF"
+SIDRA_AL = SIDRA_AL[, c("ANO","NIVEL","CODMUNRES")]
+
 # 4 POPRE_T
+POPRE_T = sidra1_AL[, c("CODMUNRES", "POPRE_T")]
+names(POPRE_T) = c("CODMUNRES", "POPRE_T")
+SIDRA_AL = merge(SIDRA_AL, POPRE_T, by = "CODMUNRES", all.x = TRUE)
+
 # 5 POPRC_T
+POPRC_T = sidra2_AL[, c("CODMUNRES", "POPRC_T")]
+names(POPRC_T) = c("CODMUNRES", "POPRC_T")
+SIDRA_AL = merge(SIDRA_AL, POPRC_T, by = "CODMUNRES", all.x = TRUE)
+
 # 6 POPRC_M
+POPRC_M = sidra2_AL[, c("CODMUNRES", "POPRC_M")]
+names(POPRC_M) = c("CODMUNRES", "POPRC_M")
+SIDRA_AL = merge(SIDRA_AL, POPRC_M, by = "CODMUNRES", all.x = TRUE)
+
 # 7 POPRC_F
+POPRC_F = sidra2_AL[, c("CODMUNRES", "POPRC_F")]
+names(POPRC_F) = c("CODMUNRES", "POPRC_F")
+SIDRA_AL = merge(SIDRA_AL, POPRC_F, by = "CODMUNRES", all.x = TRUE)
+
 # 8 POPRC_15
+POPRC_15 = aggregate(POP ~ CODMUNRES, data =
+                       subset(sidra4_AL, F_IDADE %in% c("0 a 4 anos",
+                                                        "5 a 9 anos",
+                                                        "10 a 14 anos")), FUN = sum)
+names(POPRC_15)[2] = "POPRC_15"
+SIDRA_AL = merge(SIDRA_AL, POPRC_15, by = "CODMUNRES", all.x = TRUE)
+SIDRA_AL$POPRC_15[1] = sum(sidra3_AL$POP[sidra3_AL$F_IDADE %in% c(
+      "0 a 4 anos", "5 a 9 anos", "10 a 14 anos")])
+
 # 9 POPRC_15_49
+POPRC_15_49 = aggregate(POP ~ CODMUNRES, data =
+                       subset(sidra4_AL, F_IDADE %in% c("15 a 19 anos",
+                                                        "20 a 24 anos",
+                                                        "25 a 29 anos",
+                                                        "30 a 34 anos",
+                                                        "35 a 39 anos",
+                                                        "40 a 44 anos",
+                                                        "45 a 49 anos")), FUN = sum)
+names(POPRC_15_49)[2] = "POPRC_15_49"
+SIDRA_AL = merge(SIDRA_AL, POPRC_15_49, by = "CODMUNRES", all.x = TRUE)
+SIDRA_AL$POPRC_15_49[1] = sum(sidra3_AL$POP[sidra3_AL$F_IDADE %in% c(
+  "15 a 19 anos", "20 a 24 anos", "25 a 29 anos", "30 a 34 anos",
+  "35 a 39 anos", "40 a 44 anos", "45 a 49 anos")])
+
 # 10 POPRC_50
+POPRC_50 = aggregate(POP ~ CODMUNRES, data =
+                          subset(sidra4_AL, F_IDADE %in% c("50 a 54 anos",
+                                                           "55 a 59 anos",
+                                                           "60 a 64 anos",
+                                                           "65 a 69 anos",
+                                                           "70 a 74 anos",
+                                                           "75 a 79 anos",
+                                                           "80 a 84 anos",
+                                                           "85 a 89 anos",
+                                                           "90 a 94 anos",
+                                                           "95 a 99 anos",
+                                                           "100 anos ou mais")), FUN = sum)
+names(POPRC_50)[2] = "POPRC_50"
+SIDRA_AL = merge(SIDRA_AL, POPRC_50, by = "CODMUNRES", all.x = TRUE)
+SIDRA_AL$POPRC_50[1] = sum(sidra3_AL$POP[sidra3_AL$F_IDADE %in% c(
+  "50 a 54 anos", "55 a 59 anos", "60 a 64 anos",
+  "65 a 69 anos", "70 a 74 anos", "75 a 79 anos",
+  "80 a 84 anos", "85 a 89 anos", "90 a 94 anos",
+  "95 a 99 anos", "100 anos ou mais")])
+
 # 11 POPRC_F_15
+POPRC_F_15 = aggregate(POPF ~ CODMUNRES, data =
+                       subset(sidra4_AL, F_IDADE %in% c("0 a 4 anos",
+                                                        "5 a 9 anos",
+                                                        "10 a 14 anos")), FUN = sum)
+names(POPRC_F_15)[2] = "POPRC_F_15"
+SIDRA_AL = merge(SIDRA_AL, POPRC_F_15, by = "CODMUNRES", all.x = TRUE)
+SIDRA_AL$POPRC_F_15[1] = sum(sidra3_AL$POPF[sidra3_AL$F_IDADE %in% c(
+  "0 a 4 anos", "5 a 9 anos", "10 a 14 anos")])
+
 # 12 POPRC_F_15_49
+POPRC_F_15_49 = aggregate(POPF ~ CODMUNRES, data =
+                          subset(sidra4_AL, F_IDADE %in% c("15 a 19 anos",
+                                                           "20 a 24 anos",
+                                                           "25 a 29 anos",
+                                                           "30 a 34 anos",
+                                                           "35 a 39 anos",
+                                                           "40 a 44 anos",
+                                                           "45 a 49 anos")), FUN = sum)
+names(POPRC_F_15_49)[2] = "POPRC_F_15_49"
+SIDRA_AL = merge(SIDRA_AL, POPRC_F_15_49, by = "CODMUNRES", all.x = TRUE)
+SIDRA_AL$POPRC_F_15_49[1] = sum(sidra3_AL$POPF[sidra3_AL$F_IDADE %in% c(
+  "15 a 19 anos", "20 a 24 anos", "25 a 29 anos", "30 a 34 anos",
+  "35 a 39 anos", "40 a 44 anos", "45 a 49 anos")])
+
 # 13 POPRC_F_50
+POPRC_F_50 = aggregate(POPF ~ CODMUNRES, data =
+                       subset(sidra4_AL, F_IDADE %in% c("50 a 54 anos",
+                                                        "55 a 59 anos",
+                                                        "60 a 64 anos",
+                                                        "65 a 69 anos",
+                                                        "70 a 74 anos",
+                                                        "75 a 79 anos",
+                                                        "80 a 84 anos",
+                                                        "85 a 89 anos",
+                                                        "90 a 94 anos",
+                                                        "95 a 99 anos",
+                                                        "100 anos ou mais")), FUN = sum)
+names(POPRC_F_50)[2] = "POPRC_F_50"
+SIDRA_AL = merge(SIDRA_AL, POPRC_F_50, by = "CODMUNRES", all.x = TRUE)
+SIDRA_AL$POPRC_F_50[1] = sum(sidra3_AL$POPF[sidra3_AL$F_IDADE %in% c(
+  "50 a 54 anos", "55 a 59 anos", "60 a 64 anos",
+  "65 a 69 anos", "70 a 74 anos", "75 a 79 anos",
+  "80 a 84 anos", "85 a 89 anos", "90 a 94 anos",
+  "95 a 99 anos", "100 anos ou mais")])
 
 # Exporte o arquivo em formato CSV
+write.csv(SIDRA_AL, "SIDRA_AL.csv", row.names = FALSE)
+
 # Faça o commit com a mensagem "Script e dados TAREFA 3 - SIDRA"
 
 
