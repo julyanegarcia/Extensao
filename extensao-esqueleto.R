@@ -1381,15 +1381,42 @@ write.csv(SIDRA_AL, "SIDRA_AL.csv", row.names = FALSE)
 # Faça o commit com a mensagem "Script e dados TAREFA 3 - SIDRA"
 
 # Tarefa 2: Acesso aos bancos de dados do SINISA e obtenção da informação
-# Escreva os comandos da Tarefa 2 estando na branch OUTROS# Leia o arquivo agua e esgoto - município - 2015.csv 
+# Escreva os comandos da Tarefa 2 estando na branch OUTROS
+# Leia o arquivo agua e esgoto - município - 2015.csv 
+library(readxl)
+sinisa = read_xlsx("agua e esgoto - município - 2015.xlsx")
+sinisa_AL = sinisa[substr(as.character(sinisa$CODMUNRES), 1, 2) == "27",]
+
 # A partir do arquivo acima gere o banco de dados de nome SINISA_UF com as seguintes variáveis:
 # 1  ANO    
 # 2  NIVEL
 # 3  CODMUNRES
+SINISA_AL = data.frame(CODMUNRES = sort(unique(sinisa_AL$CODMUNRES)))
+SINISA_AL$ANO = 2015
+SINISA_AL$NIVEL = "MUNICIPIO"
+SINISA_AL = SINISA_AL[, c("ANO","NIVEL","CODMUNRES")]
+
 # 4 POPR_RA
+POPR_RA = sinisa_AL[, c("CODMUNRES","POPR_RA")]
+SINISA_AL = merge(SINISA_AL, POPR_RA, by = "CODMUNRES", all.x = TRUE)
+
 # 5 POPR_RE
+POPR_RE = sinisa_AL[, c("CODMUNRES","POPR_RE")]
+SINISA_AL = merge(SINISA_AL, POPR_RE, by = "CODMUNRES", all.x = TRUE)
+
+linha_UF = SINISA_AL[1, ]
+col_num = sapply(SINISA_AL, is.numeric)
+linha_UF[col_num] = colSums(SINISA_AL[, col_num], na.rm = TRUE)
+
+linha_UF$ANO = 2015
+linha_UF$NIVEL = "UF"
+linha_UF$CODMUNRES = 27
+
+SINISA_AL = rbind(linha_UF, SINISA_AL)
 
 # Exporte o arquivo em formato CSV
+write.csv(SINISA_AL, "SINISA_AL.csv", row.names = FALSE)
+
 # Faça o commit com a mensagem "Script e dados TAREFA 3 - SINISA"
 
 
