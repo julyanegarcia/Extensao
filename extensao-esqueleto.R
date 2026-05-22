@@ -1425,8 +1425,26 @@ write.csv(SINISA_AL, "SINISA_AL.csv", row.names = FALSE)
 # Escreva os comandos da Tarefa 3 estando na branch OUTROS
 # Leia os arquivos:
 # 1. códigos dos municípios - 2010.csv 
+codigos = read.csv("códigos dos municípios - 2010.csv", sep = ";", encoding = "UTF-8")
+codigos = codigos[, colSums(is.na(codigos)) < nrow(codigos)]
+codigos$município_uf = paste0(codigos$município, " (AL)")
+
 # 2. IDHM - 2010 (CENSO) e 2015 (PNAD) - total e por sexo - UF - Atlas Brasil.csv
+atlas_uf = read.csv("IDHM - 2010 (CENSO) e 2015 (PNAD) - total e por sexo - UF - Atlas Brasil.csv",
+                    sep = ";", encoding = "UTF-8")
+atlas_uf = atlas_uf[, colSums(is.na(atlas_uf)) < nrow(atlas_uf)]
+
 # 3. IDHM - 2010 - municípios - Atlas Brasil.csv
+atlas_mun = read.csv("IDHM - 2010 - municípios - Atlas Brasil.csv",
+                     sep = ";", encoding = "UTF-8")
+atlas_mun = atlas_mun[, colSums(is.na(atlas_mun)) < nrow(atlas_mun)]
+
+atlas_mun2 = merge(atlas_mun, codigos, by.x = "município", by.y = "município_uf")
+atlas_mun2$IDHM_2010 = as.numeric(gsub(",", ".", atlas_mun2$IDHM_2010))
+atlas_mun2$CODMUNRES = as.character(atlas_mun2$CODMUNRES)
+atlas_mun2_AL = atlas_mun2[substr(atlas_mun2$CODMUNRES, 1, 2) == "27",]
+atlas_mun2_AL$IDHM_2010 = as.numeric(gsub(",", ".", atlas_mun2_AL$IDHM_2010))
+
 # A partir do arquivo acima gere o banco de dados de nome ATLAS_UF com as seguintes variáveis:
 # 1  ANO    
 # 2  NIVEL
@@ -1435,8 +1453,21 @@ write.csv(SINISA_AL, "SINISA_AL.csv", row.names = FALSE)
 # 5 IDHM_CA
 # 6 IDHM_CA_M
 # 7 IDHM_CA_F
+ATLAS_AL = data.frame(ANO = 2015, NIVEL = "MUNICIPIO", CODMUNRES = sort(unique(atlas_mun2_AL$CODMUNRES)),
+                      IDHM_A = NA, IDHM_CA = atlas_mun2_AL$IDHM_2010, IDHM_CA_M = NA, IDHM_CA_F = NA)
 
-# Exporte o arquivo em formato CSV# Faça o commit com a mensagem "Script e dados TAREFA 3 - ATLAS"
+linha_UF = data.frame(ANO = 2015, NIVEL = "UF", CODMUNRES = 27,
+                      IDHM_A = as.numeric(gsub(",", ".", atlas_uf$IDHM_2015[atlas_uf$UF == "Alagoas"])),
+                      IDHM_CA = as.numeric(gsub(",", ".", atlas_uf$IDHM_2010[atlas_uf$UF == "Alagoas"])),
+                      IDHM_CA_M = as.numeric(gsub(",", ".", atlas_uf$IDHM_2010_M[atlas_uf$UF == "Alagoas"])),
+                      IDHM_CA_F = as.numeric(gsub(",", ".", atlas_uf$IDHM_2010_F[atlas_uf$UF == "Alagoas"])))
+
+ATLAS_AL = rbind(linha_UF, ATLAS_AL)
+
+# Exporte o arquivo em formato CSV
+write.csv(ATLAS_AL, "ATLAS_AL.csv", row.names = FALSE)
+
+# Faça o commit com a mensagem "Script e dados TAREFA 3 - ATLAS"
 
 #####################################################################################################
 # ETAPA 4: GERAR BANCO DE DADOS FINAL DO ESTADO, BASEADO NAS ANÁLISES DE SINASC, SIM, IBGE, SNIS,...
