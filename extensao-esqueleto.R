@@ -1383,8 +1383,9 @@ write.csv(SIDRA_AL, "SIDRA_AL.csv", row.names = FALSE)
 # Tarefa 2: Acesso aos bancos de dados do SINISA e obtenção da informação
 # Escreva os comandos da Tarefa 2 estando na branch OUTROS
 # Leia o arquivo agua e esgoto - município - 2015.csv 
-library(readxl)
-sinisa = read_xlsx("agua e esgoto - município - 2015.xlsx")
+sinisa = read.csv2("agua e esgoto - município - 2015.csv", sep = ",", )
+sinisa$POPR_RA = as.numeric(gsub("\\.", "", sinisa$POPR_RA))
+sinisa$POPR_RE = as.numeric(gsub("\\.", "", sinisa$POPR_RE))
 sinisa_AL = sinisa[substr(as.character(sinisa$CODMUNRES), 1, 2) == "27",]
 
 # A partir do arquivo acima gere o banco de dados de nome SINISA_UF com as seguintes variáveis:
@@ -1423,7 +1424,7 @@ write.csv(SINISA_AL, "SINISA_AL.csv", row.names = FALSE)
 # Tarefa 3: Acesso aos bancos de dados do ATLAS  e obtenção da informação
 # Escreva os comandos da Tarefa 3 estando na branch OUTROS
 # Leia os arquivos:
-# 1. códigos dos municípios - 2010.csv      
+# 1. códigos dos municípios - 2010.csv 
 # 2. IDHM - 2010 (CENSO) e 2015 (PNAD) - total e por sexo - UF - Atlas Brasil.csv
 # 3. IDHM - 2010 - municípios - Atlas Brasil.csv
 # A partir do arquivo acima gere o banco de dados de nome ATLAS_UF com as seguintes variáveis:
