@@ -1482,12 +1482,70 @@ write.csv(ATLAS_AL, "ATLAS_AL.csv", row.names = FALSE)
 
 # Após o merge dos bancos, fazer commit “Script e dados agregados da UF”
 
+SIDRA_AL = read.csv("SIDRA_AL.csv")
+ATLAS_AL = read.csv("ATLAS_AL.csv")
+SINASC_AL = read.csv("SINASC_AL.csv")
+SIM_AL = read.csv("SIM_AL.csv")
+SINISA_AL = read.csv("SINISA_AL.csv")
+
+BD1 = merge(SIDRA_AL, ATLAS_AL, by = c("ANO", "NIVEL", "CODMUNRES"), all = TRUE)
+BD2 = merge(SINASC_AL, SIM_AL, by = c("ANO", "NIVEL", "CODMUNRES"), all = TRUE)
+BD2 = merge(BD2, SINISA_AL, by = c("ANO", "NIVEL", "CODMUNRES"), all = TRUE)
+
+BD1$COD7 = BD1$CODMUNRES
+
+BD1$CODMUNRES = ifelse(
+  BD1$NIVEL == "UF",
+  as.character(BD1$CODMUNRES),
+  substr(as.character(BD1$COD7), 1, 6))
+
+BD2$CODMUNRES <- as.character(BD2$CODMUNRES)
+BD1$CODMUNRES <- as.character(BD1$CODMUNRES)
+
+DA_AL = merge(BD1, BD2, by = c("ANO", "NIVEL", "CODMUNRES"), all = TRUE)
+DA_AL = DA_AL[-1, ]
+DA_AL = DA_AL[c(nrow(DA_AL), 1:(nrow(DA_AL)-1)), ]
+
+DA_AL$CODMUNRES = NULL
+names(DA_AL)[names(DA_AL) == "COD7"] = "CODMUNRES"
+DA_AL = DA_AL[, c("ANO", "NIVEL", "CODMUNRES", setdiff(names(DA_AL), c("ANO","NIVEL","CODMUNRES")))]
 
 # Tarefa 2: Acrescentar no banco DA_UF os indicadores TFG, TMG, RMM, TMM, TMM_P, TMN, TMN_P, TMN_T e TMI e chamar o banco de BDEM_UF_2015
+
+# TFG - Taxa de fecundidade geral
+DA_AL$TFG = (DA_AL$TN / DA_AL$POPRC_F_15_49) * 1000
+
+# TMG - Taxa de mortalidade geral
+DA_AL$TMG = (DA_AL$TO / DA_AL$POPRE_T) * 1000
+
+# RMM - Razão de mortalidade materna
+DA_AL$RMM = (DA_AL$TO_MT / DA_AL$TN) * 100000
+
+# TMM - Taxa de mortalidade materna
+DA_AL$TMM = (DA_AL$TO_MT / DA_AL$POPRC_F_15_49) * 100000
+
+# TMM_P - Taxa de mortalidade materna precoce
+DA_AL$TMM_P = (DA_AL$TO_MT_P / DA_AL$POPRC_F_15_49) * 100000
+
+# TMN - Taxa de mortalidade neonatal
+DA_AL$TMN = (DA_AL$TO_NT / DA_AL$TN) * 1000
+
+# TMN_P - Taxa de mortalidade neonatal precoce
+DA_AL$TMN_P = (DA_AL$TO_NT_P / DA_AL$TN) * 1000
+
+# TMN_T - Taxa de mortalidade neonatal tardia
+DA_AL$TMN_T = (DA_AL$TO_NT_T / DA_AL$TN) * 1000
+
+# TMI - Taxa de mortalidade infantil
+DA_AL$TMI = ((DA_AL$TO_NT + DA_AL$TO_PNT) / DA_AL$TN) * 1000
+
+BDEM_AL_2015 = DA_AL
 
 # Após a criação do banco, fazer commit “Script e dados BDEM_UF_2015”
 
 # Exporte o arquivo em formato CSV
+write.csv(BDEM_AL_2015, "BDEM_AL_2015.csv", row.names = FALSE)
+
 # Faça o commit com a mensagem "Script e dados BDEM"
 
 
